@@ -33,16 +33,17 @@ class CustomSearchPlugin extends Gdn_Plugin {
          ->Set(FALSE, FALSE);
          
       $Structure->Table('CSOccurance')
-         ->PrimaryKey('ID', 'int(11)')
          ->Column('DiscussionID', 'int(11)', '0')
          ->Column('CommentID', 'int(11)', '0')
          ->Column('InsertUserID', 'int(11)', FALSE)
          ->Column('DateInserted', 'datetime', FALSE)
-         ->Column('WordID', 'int(11)', FALSE, 'index')
+         ->Column('WordID', 'int(11)', FALSE)
          ->Column('OccuranceCount', 'int(11)', '1')
          ->Engine('InnoDB')
          ->Set(FALSE, FALSE);
-      
+      $Px = Gdn::Database()->DatabasePrefix;
+      Gdn::SQL()->Query("ALTER TABLE {$Px}CSOccurance ADD UNIQUE INDEX(DiscussionID, CommentID, WordID)");
+
       $Structure->Table('CSPostWord') // will an index on both columns be good for speed?
          ->Column('WordID', 'int(11)', '0')
          ->Column('Word', 'varchar(255)', FALSE)
@@ -83,7 +84,7 @@ class CustomSearchPlugin extends Gdn_Plugin {
    }
 
    // maybe this will lead to a timeout :-(
-   public function ReindexAll() {
+   private function ReIndexAll() {
       $DiscussionModel = new DiscussionModel();
       $CommentModel = new CommentModel();
       $Discussions = $DiscussionModel->Get();
@@ -96,7 +97,7 @@ class CustomSearchPlugin extends Gdn_Plugin {
             $Discussion->InsertUserID,
             $Discussion->DateInserted
          );
-         $Comments = $CommentModel->Get(
+         $Comments = $CommentModel->Get($DiscussionID);
          foreach ($Comments as $Comment) {
             $this->IndexText(
                $Comment->Body,
@@ -113,7 +114,7 @@ class CustomSearchPlugin extends Gdn_Plugin {
       $Px = Gdn::Database()->DatabasePrefix;
       $Sql = Gdn::SQL();
 
-      // To prevent double indexing, first try to delete table
+      // to prevent double indexing, first try to delete regarding rows from table
       $Sql->Delete('CSOccurance', array('DiscussionID' => $DiscussionID, 'CommentID' => $CommentID));
       
       // prepare temp table by deleting its contents
