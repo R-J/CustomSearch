@@ -178,14 +178,15 @@ return;
       $CountQuery .= "SELECT {$DiscussionID}, {$CommentID}, {$InsertUserID}, '{$DateInserted}', WordID, COUNT(WordID) FROM {$Px}CSPostWord GROUP BY WordID";
       $Sql->Query($CountQuery);
    }
-   
+// public function SearchModel_AfterBuildSearchQuery_Handler($Sender) {
    public function SearchModel_Search_Handler($Sender) {
 // $this->ReIndexAll();
 // return;   
-      $Px = Gdn::Database()->DatabasePrefix;
+// decho($Sender->Sql);
 
       $Sender->Reset();
-      // $Sender->AddSearch("select 1 as `Relavence`    , 98 as `PrimaryID`    , 'Pfusch' as `Title`    , 'Tästmän ;)' as `Summary`    , 'HTML' `Format`    , 1 as `CategoryID`    , concat('/discussion/comment/', 98, '/#Comment_', c.CommentID) as `Url`    , '2013-04-01' as `DateInserted`    , 6 as `UserID` from    V20188_Comment c where c.CommentID = 98");
+
+      $Px = Gdn::Database()->DatabasePrefix;
       $Sql = <<<EOT
 SELECT
      o.OccuranceCount AS `Relavence`    
@@ -215,9 +216,5 @@ ORDER BY
    , o.DateInserted DESC
 EOT;
       $Sender->AddSearch($Sql);
-//      decho($Sql);
-//      decho($Sender->EventArguments['Search']);
-//      decho($Sender);
-      
    }
 }
